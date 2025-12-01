@@ -1,9 +1,2 @@
-fastapi
-uvicorn
-pandas
-numpy
-scikit-learn
 plotly
-streamlit
-requests
-faiss
+
