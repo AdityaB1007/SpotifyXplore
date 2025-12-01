@@ -8,9 +8,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-# ==========================================
-# 1. MODEL ARCHITECTURE
-# ==========================================
 class NCFModel(nn.Module):
     def __init__(self, num_users, num_items, embedding_dim=32):
         super(NCFModel, self).__init__()
@@ -35,28 +32,20 @@ class NCFModel(nn.Module):
 
 app = FastAPI(title="Spotify Recommendation Engine")
 
-# ==========================================
-# 2. GLOBAL STATE LOADING
-# ==========================================
 print("Booting up Neural Engine...")
 
-# Load Metadata
 tracks_df = pd.read_pickle("processed_tracks.pkl")
-# Unique lists for search and filters
 unique_song_names = sorted(tracks_df['track_name'].unique())
 unique_genres = sorted(tracks_df['genre'].dropna().unique().tolist())
 
-# Load Encoders
 with open("encoders.pkl", "rb") as f:
     encoders = pickle.load(f)
 
 item_encoder = encoders["item_encoder"]
 user_encoder = encoders["user_encoder"]
 
-# Load Vector DB
 index = faiss.read_index("spotify_vector_index.faiss")
 
-# Load Neural Model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 num_users = len(user_encoder.classes_)
 num_items = len(item_encoder.classes_)
@@ -69,9 +58,6 @@ try:
 except Exception as e:
     print(f"Warning: Model weights could not be loaded. {e}")
 
-# ==========================================
-# 3. API ENDPOINTS
-# ==========================================
 
 class SongRequest(BaseModel):
     song_name: str
@@ -117,29 +103,22 @@ def curate_playlist(req: PlaylistRequest):
     """
     Filters the dataset based on audio features and returns a curated list.
     """
-    # Start with full dataset
     df = tracks_df.copy()
-    
-    # 1. Filter by Genre (if provided)
+   
     if req.genres:
         df = df[df['genre'].isin(req.genres)]
-        
-    # 2. Filter by Audio Features
+  
     df = df[
         (df['energy'] >= req.energy_min) & (df['energy'] <= req.energy_max) &
         (df['danceability'] >= req.dance_min) & (df['danceability'] <= req.dance_max) &
         (df['tempo'] >= req.tempo_min) & (df['tempo'] <= req.tempo_max)
     ]
     
-    # 3. Sort & Slice
-    # Sort by popularity to give "best" matching songs first
-    # If dataset has no popularity, we might sample randomly
     if 'popularity' in df.columns:
         df = df.sort_values(by='popularity', ascending=False)
     
     results = df.head(req.limit)
     
-    # Convert to list of dicts
     playlist = []
     for _, row in results.iterrows():
         playlist.append({
@@ -159,14 +138,13 @@ def curate_playlist(req: PlaylistRequest):
 
 @app.post("/recommend/similar")
 def recommend_similar(request: SongRequest):
-    # 1. Get Track ID
+
     seed_row = tracks_df[tracks_df['track_name'] == request.song_name]
     if seed_row.empty:
         raise HTTPException(status_code=404, detail="Song not found")
     
     track_id = seed_row.iloc[0]['track_id']
-    
-    # 2. Get Embedding Vector
+  
     try:
         idx = item_encoder.transform([track_id])[0]
         with torch.no_grad():
@@ -176,7 +154,6 @@ def recommend_similar(request: SongRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Vector extraction failed: {str(e)}")
 
-    # 3. FAISS Search
     try:
         D, I = index.search(query_vector, request.k + 1)
         recommendations = []
@@ -193,4 +170,5 @@ def recommend_similar(request: SongRequest):
             
         return {"seed_song": request.song_name, "recommendations": recommendations}
     except Exception as e:
+
         raise HTTPException(status_code=500, detail=f"FAISS search failed: {str(e)}")
