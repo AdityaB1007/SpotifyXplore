@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 import plotly.express as px
 import time
 
-# Configuration
 API_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(page_title="♫ SpotifyXplore", page_icon="", layout="wide")
@@ -17,7 +16,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 1. Sidebar & Connection ---
+# Sidebar & Connection 
 with st.sidebar:
     st.header(" Server Connection")
     try:
@@ -35,7 +34,7 @@ with st.sidebar:
         st.warning("Please run: uvicorn 2_backend_api:app --reload")
         st.stop()
 
-# --- 2. Data Fetching ---
+# Data Fetching 
 @st.cache_data
 def get_genres():
     try:
@@ -45,14 +44,11 @@ def get_genres():
 
 genres_list = get_genres()
 
-# --- 3. Main UI ---
+# Main UI
 st.title("♫ Music Recommender")
 
 tab1, tab2 = st.tabs(["🔍 Similarity Engine", "🎛️ Playlist Curator"])
 
-# ==========================================
-# TAB 1: VECTOR SIMILARITY
-# ==========================================
 with tab1:
     st.subheader("Neural Vector Search")
     
@@ -95,9 +91,7 @@ with tab1:
         except Exception as e:
             st.error(f"Error: {e}")
 
-# ==========================================
-# TAB 2: PLAYLIST CURATOR
-# ==========================================
+# PLAYLIST CURATOR
 with tab2:
     st.subheader("Feature-Based Curator")
     
@@ -148,9 +142,7 @@ with tab2:
                         
                     with pc2:
                         st.markdown("### Playlist Vibe")
-                        # Average the features for the radar chart
                         avg_stats = df_pl[['energy', 'danceability']].mean()
-                        # Normalize tempo to 0-1 for radar chart display (assuming max 200)
                         avg_stats['tempo (scaled)'] = df_pl['tempo'].mean() / 200.0
                         
                         r_data = pd.DataFrame({
@@ -167,4 +159,5 @@ with tab2:
                 st.error("API Error")
                 
         except Exception as e:
+
             st.error(f"Connection Failed: {e}")
