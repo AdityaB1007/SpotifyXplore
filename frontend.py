@@ -31,7 +31,7 @@ with st.sidebar:
             st.error("Server Error")
     except:
         st.error("❌ Backend Offline")
-        st.warning("Please run: uvicorn 2_backend_api:app --reload")
+        st.warning("Please run: uvicorn backend:app --reload")
         st.stop()
 
 # Data Fetching 
@@ -161,4 +161,5 @@ with tab2:
         except Exception as e:
 
             st.error(f"Connection Failed: {e}")
+
 
