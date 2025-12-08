@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import time
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://adib241-spotify-backend.hf.space"
 
 st.set_page_config(page_title="♫ SpotifyXplore", page_icon="", layout="wide")
 
@@ -161,3 +161,4 @@ with tab2:
         except Exception as e:
 
             st.error(f"Connection Failed: {e}")
+
