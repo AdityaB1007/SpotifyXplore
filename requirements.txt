@@ -1,10 +1,4 @@
-fastapi
-uvicorn
-pandas
-numpy
-scikit-learn
-plotly
 streamlit
 requests
-faiss-cpu
-torch --index-url https://download.pytorch.org/whl/cpu
+pandas
+plotly
